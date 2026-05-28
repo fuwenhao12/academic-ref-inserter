@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "academic-ref-inserter"
+version = "1.0.0"
+description = "Insert, format, and cross-reference academic citations in Word (.docx) documents. Supports GB/T 7714-2015, IEEE, and APA 7th."
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Academic Ref Inserter Contributors"}
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Markup",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "python-docx>=0.8.11",
+]
+keywords = ["academic", "citation", "reference", "bibliography", "gb-t-7714", "ieee", "apa", "docx"]
+
+[project.urls]
+Homepage = "https://github.com/linfewngfeng/academic-ref-inserter"
+Repository = "https://github.com/linfewngfeng/academic-ref-inserter"
+Issues = "https://github.com/linfewngfeng/academic-ref-inserter/issues"
+
+[project.scripts]
+refinserter = "scripts.insert_refs:main"
+ref-inserter = "scripts.insert_refs:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["scripts", "scripts.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py38"

@@ -1,0 +1,22 @@
+# Build
+*.pyc
+__pycache__/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test outputs
+*_backup_*.docx
+*_backup_refs.docx
+*.analysis.json
+
+# Environment
+.env
+venv/
+.venv/

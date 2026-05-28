@@ -1,0 +1,35 @@
+{
+  "name": "academic-ref-inserter",
+  "description": "Insert, format, and cross-reference academic citations in Word documents",
+  "commands": [
+    {
+      "name": "analyze",
+      "command": "python scripts/insert_refs.py analyze --input \"${input}\" --json",
+      "description": "Analyze citation structure in a .docx file"
+    },
+    {
+      "name": "fix-gbt7714",
+      "command": "python scripts/insert_refs.py fix --input \"${input}\" --format gbt7714",
+      "description": "Full pipeline: GB/T 7714-2015 (Chinese standard)"
+    },
+    {
+      "name": "fix-ieee",
+      "command": "python scripts/insert_refs.py fix --input \"${input}\" --format ieee",
+      "description": "Full pipeline: IEEE format"
+    },
+    {
+      "name": "fix-apa7",
+      "command": "python scripts/insert_refs.py fix --input \"${input}\" --format apa7",
+      "description": "Full pipeline: APA 7th format"
+    },
+    {
+      "name": "validate",
+      "command": "python scripts/insert_refs.py validate --input \"${input}\" --format \"${format}\" --json",
+      "description": "Validate references for format compliance"
+    }
+  ],
+  "config": {
+    "python": ">=3.8",
+    "dependencies": ["python-docx"]
+  }
+}
