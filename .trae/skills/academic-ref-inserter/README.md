@@ -3,9 +3,11 @@
 > **Insert, format, and cross-reference academic citations in Word documents.**  
 > Supports Chinese (GB/T 7714-2015) and international (IEEE, APA 7th, Chicago, MLA, Harvard) standards.
 
+[![Version](https://img.shields.io/badge/Release-v1.0.1-brightgreen)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.XXXXXX-blue)](https://doi.org/10.5281/zenodo.XXXXXX)
+
+> 📖 **最新版本**: [v1.0.1](CHANGELOG.md#101---2026-05-28) — 查看完整[更新日志](CHANGELOG.md)
 
 ---
 
@@ -237,3 +239,20 @@ If you use this tool in your research, please cite:
 - **Cascading reorder bug** — `cmd_reorder` used single-pass sequential replacement, causing `[25]→[7]→[8]→...→[25]` cascading that corrupted 12 of 25 citation numbers. Fixed with **two-phase** replacement (temporary marker → final number).
 - **Reference section hyperlinks** — `cmd_hyperlink` now correctly skips the reference section, preventing false hyperlinks on bibliography entries.
 - **Adjacent citation dedup** — Added `dedup_adjacent_citations()` function to collapse `[1][1][1]` → `[1]` in body text before hyperlink creation.
+
+### v1.0.0 (2026-05-29)
+
+**Initial release features:**
+
+- Multi-format citation support (GB/T 7714, IEEE, APA, Chicago, MLA, Harvard)
+- DOI auto-fetch via CrossRef API
+- BibTeX import/export
+- Full pipeline: analyze → reformat → reorder → hyperlink → validate
+- Interactive console CLI mode
+- Cross-reference hyperlinks in Word documents
+- Validation checks for orphan refs, ordering, recency, duplicates
+- Safe backup before any modification
+
+---
+
+> See [CHANGELOG.md](CHANGELOG.md) for full version history.
