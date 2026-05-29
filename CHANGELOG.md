@@ -57,9 +57,16 @@
 
 ### 🔧 其他变更
 
-- 添加 `.gitignore` 配置文件（排除 `__pycache__/`、`*.tmp*`、`py_deps/`、`paper_rewriting_output/` 等）
 - 添加 `check_format.py` 格式检查脚本
 - 清理临时诊断脚本（`check_*.py`、`restore_*.py`、`verify_*.py` 等测试文件）
+
+### 📂 版本控制
+
+- 初始化 Git 仓库，配置远程 `origin` → `https://github.com/fuwenhao12/academic-ref-inserter.git`
+- 创建 `.gitignore` 配置文件（排除 `__pycache__/`、`*.tmp*`、`py_deps/`、`paper_rewriting_output/` 等）
+- 使用 GitHub Personal Access Token 完成身份认证
+- 首次提交并推送：205 个文件，5.52 MiB 至 `master` 分支
+- 补充提交：添加 `CHANGELOG.md` 更新日志文件
 
 ### 📦 文件统计
 
