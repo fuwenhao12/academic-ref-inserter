@@ -230,6 +230,12 @@ If you use this tool in your research, please cite:
 
 ### v1.0.1 (2026-05-28)
 
+**New features:**
+
+- **`check-refs` command** — Automated citation status checking with reference section boundary detection (`find_reference_boundary_robust()`), per-reference occurrence display (`find_citation_occurrences()`), `--report` export, and JSON output support.
+- **`auto-find` command** — CrossRef-based automatic reference searching with paper title extraction, interactive selection (range, all, none), DOI/title dedup, and auto-reorder after insertion.
+- **New utility functions** — `find_reference_boundary_robust()` (robust boundary detection), `find_citation_occurrences()` (citation location lookup), `extract_citation_content()` (citation number parsing).
+
 **Bug fixes:**
 
 - **Hyperlink styling** — Changed from blue + underline to **black superscript** (inherits document font color, no underline). Added `superscript` and `color` parameters to `make_hyperlink_element()`.
