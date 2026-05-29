@@ -2,6 +2,14 @@
 
 ## [1.0.1] - 2026-05-28
 
+### ✨ 功能增强
+
+**引用状态检查**——新增 `check-refs` 命令，自动检查论文中所有参考文献的引用状态。智能检测参考文献章节边界（含标题缺失时的降级方案 `find_reference_boundary_robust()`），逐条显示引用出现位置及上下文（`find_citation_occurrences()`），支持 `--report` 参数导出检查报告和 JSON 格式输出。
+
+**自动搜索参考文献**——新增 `auto-find` 命令，通过 CrossRef API 自动搜索并插入参考文献。自动提取论文标题/关键词，交互式选择搜索结果（支持编号范围、`all`、`none`），自动去重（按 DOI 和标题匹配），插入后自动重排编号。
+
+**工具函数增强**——新增 `find_reference_boundary_robust()`（鲁棒的引用边界检测）、`find_citation_occurrences()`（引用出现位置定位）、`extract_citation_content()`（引用编号解析）。引用边界检测鲁棒性提升。
+
 ### 🐛 漏洞修复
 
 **超链接样式**——由蓝色+下划线改为黑色上标（继承文档字体颜色，无下划线）。将 `superscript` 和 `color` 参数添加到 `make_hyperlink_element()`。
