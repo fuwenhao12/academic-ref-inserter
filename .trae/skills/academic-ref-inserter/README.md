@@ -232,19 +232,25 @@ If you use this tool in your research, please cite:
 
 ### v1.0.1 (2026-05-28)
 
-**New features:**
+#### ✨ 功能增强
 
-- **`check-refs` command** — Automated citation status checking with reference section boundary detection (`find_reference_boundary_robust()`), per-reference occurrence display (`find_citation_occurrences()`), `--report` export, and JSON output support.
-- **`auto-find` command** — CrossRef-based automatic reference searching with paper title extraction, interactive selection (range, all, none), DOI/title dedup, and auto-reorder after insertion.
-- **New utility functions** — `find_reference_boundary_robust()` (robust boundary detection), `find_citation_occurrences()` (citation location lookup), `extract_citation_content()` (citation number parsing).
+**引用状态检查**——新增 `check-refs` 命令，自动检查论文中所有参考文献的引用状态。智能检测参考文献章节边界（含标题缺失时的降级方案 `find_reference_boundary_robust()`），逐条显示引用出现位置及上下文（`find_citation_occurrences()`），支持 `--report` 参数导出检查报告和 JSON 格式输出。
 
-**Bug fixes:**
+**自动搜索参考文献**——新增 `auto-find` 命令，通过 CrossRef API 自动搜索并插入参考文献。自动提取论文标题/关键词，交互式选择搜索结果（支持编号范围、`all`、`none`），自动去重（按 DOI 和标题匹配），插入后自动重排编号。
 
-- **Hyperlink styling** — Changed from blue + underline to **black superscript** (inherits document font color, no underline). Added `superscript` and `color` parameters to `make_hyperlink_element()`.
-- **Duplicate hyperlinks** — `replace_citation_with_hyperlink` now only processes direct `<w:r>` children of `<w:p>`, skipping runs inside existing `<w:hyperlink>` elements. Prevents nested hyperlinks that caused visual `[1][1]` duplicates.
-- **Cascading reorder bug** — `cmd_reorder` used single-pass sequential replacement, causing `[25]→[7]→[8]→...→[25]` cascading that corrupted 12 of 25 citation numbers. Fixed with **two-phase** replacement (temporary marker → final number).
-- **Reference section hyperlinks** — `cmd_hyperlink` now correctly skips the reference section, preventing false hyperlinks on bibliography entries.
-- **Adjacent citation dedup** — Added `dedup_adjacent_citations()` function to collapse `[1][1][1]` → `[1]` in body text before hyperlink creation.
+**工具函数增强**——新增 `find_reference_boundary_robust()`（鲁棒的引用边界检测）、`find_citation_occurrences()`（引用出现位置定位）、`extract_citation_content()`（引用编号解析）。引用边界检测鲁棒性提升。
+
+#### 🐛 漏洞修复
+
+**超链接样式**——由蓝色+下划线改为黑色上标（继承文档字体颜色，无下划线）。将 `superscript` 和 `color` 参数添加到 `make_hyperlink_element()`。
+
+**重复超链接**——`replace_citation_with_hyperlink` 现在只处理 `<w:p>` 的直接子节点 `<w:r>`，跳过现有 `<w:hyperlink>` 元素内的 run。防止嵌套超链接导致视觉重复 `[1][1]`。
+
+**级联重排错误**——`cmd_reorder` 使用单次顺序替换，导致级联导致 25 个引用编号中的 12 个损坏。采用两相替换修复（临时标记 → 最终编号）。`[25]→[7]→[8]→...→[25]`
+
+**参考文献部分超链接**——`cmd_hyperlink` 现在正确跳过参考文献部分，防止参考文献条目出现虚假超链接。
+
+**邻近引用删除**——新增 `dedup_adjacent_citations()` 在创建超链接前折叠正文 `[1][1][1]` → `[1]`。
 
 ### v1.0.0 (2026-05-29)
 
@@ -261,4 +267,4 @@ If you use this tool in your research, please cite:
 
 ---
 
-> See [CHANGELOG.md](CHANGELOG.md) for full version history.
+> Full changelog maintained in this section.
