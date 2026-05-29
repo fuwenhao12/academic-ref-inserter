@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "name": "academic-ref-inserter",
+  "model": "anthropic/claude-sonnet-4-5",
+  "instructions": [
+    "AGENTS.md",
+    "CONVENTIONS.md",
+    "CLAUDE.md"
+  ],
+  "agents": {
+    "academic-ref-inserter": {
+      "description": "Insert, format, and cross-reference academic citations in Word (.docx) documents",
+      "model": "anthropic/claude-sonnet-4-5",
+      "prompt": "You are an academic citation formatting expert. Use scripts/insert_refs.py to analyze, reformat, reorder, hyperlink, and validate citations in Word documents.",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true
+      }
+    }
+  },
+  "commands": {
+    "analyze": {
+      "description": "Analyze citation structure in a .docx file",
+      "command": "python scripts/insert_refs.py analyze --input \"${input}\" --json"
+    },
+    "fix-gbt7714": {
+      "description": "Full pipeline: GB/T 7714-2015 (Chinese standard)",
+      "command": "python scripts/insert_refs.py fix --input \"${input}\" --format gbt7714"
+    },
+    "fix-ieee": {
+      "description": "Full pipeline: IEEE format",
+      "command": "python scripts/insert_refs.py fix --input \"${input}\" --format ieee"
+    },
+    "fix-apa7": {
+      "description": "Full pipeline: APA 7th format",
+      "command": "python scripts/insert_refs.py fix --input \"${input}\" --format apa7"
+    },
+    "validate": {
+      "description": "Validate references for format compliance",
+      "command": "python scripts/insert_refs.py validate --input \"${input}\" --format \"${format}\" --json"
+    }
+  }
+}

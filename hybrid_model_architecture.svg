@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600">
+  <style>
+    text { font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", "SimHei", sans-serif; }
+    .cn { font-size: 14px; font-weight: 600; fill: #1e293b; }
+    .en { font-size: 10px; fill: #64748b; }
+    .box-cn { font-size: 14px; font-weight: 600; fill: #ffffff; }
+    .box-en { font-size: 10px; fill: #ffffff; }
+    .box-sub { font-size: 10px; fill: #94a3b8; font-style: italic; }
+    .formula { font-size: 12px; fill: #475569; }
+    .legend { font-size: 11px; fill: #475569; }
+  </style>
+  <defs>
+    <marker id="ab" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2563eb"/></marker>
+    <marker id="ag" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#059669"/></marker>
+    <marker id="ap" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#7c3aed"/></marker>
+    <marker id="ar" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#dc2626"/></marker>
+    <marker id="ak" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#6b7280"/></marker>
+  </defs>
+  <rect width="1200" height="600" fill="#ffffff"/>
+  <text x="40" y="38" class="cn" font-size="18">面向多尺度时序预测的时域门控混合模型</text>
+  <text x="40" y="55" class="en">Temporal Gated Hybrid Model for Multi-scale Time Series Forecasting</text>
+  <rect x="40" y="85" width="140" height="310" rx="6" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="48" y="103" class="cn" font-size="12">输入模块</text>
+  <text x="48" y="116" class="en">Input</text>
+  <rect x="55" y="130" width="110" height="70" rx="6" fill="#eff6ff" stroke="#1e40af" stroke-width="2"/>
+  <text x="110" y="158" text-anchor="middle" font-size="14" font-weight="600" fill="#1e40af">输入序列</text>
+  <text x="110" y="178" text-anchor="middle" font-size="11" fill="#1e40af">PM2.5 (96x6)</text>
+  <rect x="55" y="225" width="110" height="65" rx="6" fill="#eff6ff" stroke="#1e40af" stroke-width="1.5"/>
+  <text x="110" y="253" text-anchor="middle" font-size="14" font-weight="600" fill="#1e40af">嵌入映射</text>
+  <text x="110" y="273" text-anchor="middle" font-size="10" fill="#1e40af">Embedding</text>
+  <line x1="110" y1="200" x2="110" y2="225" stroke="#2563eb" stroke-width="1.5" marker-end="url(#ab)"/>
+  <line x1="165" y1="257" x2="185" y2="257" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+  <rect x="220" y="85" width="300" height="310" rx="6" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="228" y="103" class="cn" font-size="12">双路径编码</text>
+  <text x="228" y="116" class="en">Dual-Path Encoder</text>
+  <rect x="240" y="135" width="120" height="55" rx="6" fill="#047857" stroke="none"/>
+  <text x="300" y="160" text-anchor="middle" class="box-cn">DLinear</text>
+  <text x="300" y="178" text-anchor="middle" class="box-en">~19K 轻量线性</text>
+  <text x="300" y="125" text-anchor="middle" font-size="10" fill="#94a3b8">短期惯性主导</text>
+  <rect x="380" y="135" width="120" height="55" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="1.5"/>
+  <text x="440" y="160" text-anchor="middle" font-size="13" font-weight="600" fill="#047857">趋势-季节分解</text>
+  <text x="440" y="178" text-anchor="middle" font-size="10" fill="#047857">Decomp + Linear</text>
+  <rect x="515" y="142" width="35" height="40" rx="4" fill="#047857"/>
+  <text x="532" y="166" text-anchor="middle" class="box-cn" font-size="12">y_D</text>
+  <line x1="360" y1="162" x2="380" y2="162" stroke="#047857" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="500" y1="162" x2="515" y2="162" stroke="#047857" stroke-width="2" marker-end="url(#ag)"/>
+  <rect x="240" y="255" width="120" height="55" rx="6" fill="#b45309" stroke="none"/>
+  <text x="300" y="280" text-anchor="middle" class="box-cn">TimeXer</text>
+  <text x="300" y="298" text-anchor="middle" class="box-en">~1.3M 深度注意力</text>
+  <text x="300" y="245" text-anchor="middle" font-size="10" fill="#94a3b8">长期非线性演变</text>
+  <rect x="380" y="255" width="120" height="55" rx="6" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <text x="440" y="280" text-anchor="middle" font-size="13" font-weight="600" fill="#b45309">自注意力映射</text>
+  <text x="440" y="298" text-anchor="middle" font-size="10" fill="#b45309">Attn + Project</text>
+  <rect x="515" y="262" width="35" height="40" rx="4" fill="#b45309"/>
+  <text x="532" y="286" text-anchor="middle" class="box-cn" font-size="12">y_T</text>
+  <line x1="360" y1="282" x2="380" y2="282" stroke="#b45309" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="500" y1="282" x2="515" y2="282" stroke="#b45309" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="180" y1="257" x2="200" y2="257" stroke="#2563eb" stroke-width="2"/>
+  <line x1="200" y1="162" x2="200" y2="282" stroke="#64748b" stroke-width="1.5"/>
+  <line x1="200" y1="162" x2="240" y2="162" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+  <line x1="200" y1="282" x2="240" y2="282" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+  <rect x="560" y="85" width="180" height="310" rx="6" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="568" y="103" class="cn" font-size="12">自适应门控</text>
+  <text x="568" y="116" class="en">Adaptive Gate</text>
+  <rect x="575" y="135" width="150" height="60" rx="6" fill="#f5f3ff" stroke="#6d28d9" stroke-width="2"/>
+  <text x="650" y="158" text-anchor="middle" font-size="13" font-weight="600" fill="#6d28d9">时间门控</text>
+  <text x="650" y="178" text-anchor="middle" font-size="11" fill="#6d28d9">Time Gate (G_t)</text>
+  <rect x="575" y="255" width="150" height="60" rx="6" fill="#f5f3ff" stroke="#6d28d9" stroke-width="2"/>
+  <text x="650" y="278" text-anchor="middle" font-size="13" font-weight="600" fill="#6d28d9">变量门控</text>
+  <text x="650" y="298" text-anchor="middle" font-size="11" fill="#6d28d9">Variable Gate (G_v)</text>
+  <line x1="550" y1="162" x2="575" y2="165" stroke="#6d28d9" stroke-width="2" marker-end="url(#ap)"/>
+  <line x1="550" y1="282" x2="575" y2="285" stroke="#6d28d9" stroke-width="2" marker-end="url(#ap)"/>
+  <line x1="650" y1="195" x2="650" y2="255" stroke="#6d28d9" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="660" y="228" font-size="10" fill="#6d28d9">拼接</text>
+  <rect x="780" y="85" width="180" height="310" rx="6" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="788" y="103" class="cn" font-size="12">融合输出</text>
+  <text x="788" y="116" class="en">Fusion &amp; Output</text>
+  <rect x="795" y="135" width="150" height="75" rx="6" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+  <text x="870" y="160" text-anchor="middle" font-size="14" font-weight="600" fill="#0f766e">加权融合</text>
+  <text x="870" y="185" text-anchor="middle" font-size="11" fill="#0f766e">Weighted Fusion</text>
+  <text x="870" y="200" text-anchor="middle" font-size="10" fill="#64748b">y = G·y_D + (1-G)·y_T</text>
+  <rect x="795" y="255" width="150" height="55" rx="6" fill="#0f766e" stroke="none"/>
+  <text x="870" y="280" text-anchor="middle" class="box-cn">预测输出</text>
+  <text x="870" y="298" text-anchor="middle" class="box-en">y_fused</text>
+  <line x1="870" y1="210" x2="870" y2="255" stroke="#0f766e" stroke-width="2" marker-end="url(#ag)"/>
+  <line x1="725" y1="165" x2="760" y2="165" stroke="#6d28d9" stroke-width="2"/>
+  <line x1="725" y1="285" x2="760" y2="285" stroke="#6d28d9" stroke-width="2"/>
+  <line x1="760" y1="165" x2="760" y2="285" stroke="#6d28d9" stroke-width="1.5"/>
+  <line x1="760" y1="180" x2="795" y2="180" stroke="#6d28d9" stroke-width="2" marker-end="url(#ap)"/>
+  <rect x="40" y="425" width="920" height="80" rx="6" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="48" y="443" class="cn" font-size="12">模型优化</text>
+  <text x="48" y="456" class="en">Optimization</text>
+  <rect x="540" y="440" width="200" height="50" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+  <text x="640" y="462" text-anchor="middle" font-size="13" font-weight="600" fill="#dc2626">尺度自适应损失 SAL</text>
+  <text x="640" y="480" text-anchor="middle" font-size="10" fill="#dc2626">Self-Adaptive Loss</text>
+  <rect x="320" y="440" width="150" height="50" rx="6" fill="#f9fafb" stroke="#4b5563" stroke-width="1.5"/>
+  <text x="395" y="462" text-anchor="middle" font-size="13" font-weight="600" fill="#4b5563">真实值</text>
+  <text x="395" y="480" text-anchor="middle" font-size="10" fill="#4b5563">Ground Truth</text>
+  <line x1="870" y1="310" x2="870" y2="365" stroke="#dc2626" stroke-width="2"/>
+  <line x1="870" y1="365" x2="640" y2="365" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="640" y1="365" x2="640" y2="440" stroke="#dc2626" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="755" y="358" text-anchor="middle" font-size="10" fill="#dc2626">反向传播</text>
+  <line x1="470" y1="465" x2="540" y2="465" stroke="#4b5563" stroke-width="1.5" marker-end="url(#ak)"/>
+  <rect x="40" y="470" width="10" height="10" rx="2" fill="#047857"/>  <text x="55" y="480" class="legend">#047857DLinear</text>
+  <rect x="40" y="525" width="10" height="10" rx="2" fill="#047857"/>  <text x="55" y="535" class="legend">DLinear 路径</text>
+  <rect x="160" y="525" width="10" height="10" rx="2" fill="#b45309"/>  <text x="175" y="535" class="legend">TimeXer 路径</text>
+  <rect x="300" y="525" width="10" height="10" rx="2" fill="#6d28d9"/>  <text x="315" y="535" class="legend">门控机制</text>
+  <rect x="420" y="525" width="10" height="10" rx="2" fill="#0f766e"/>  <text x="435" y="535" class="legend">融合输出</text>
+  <rect x="540" y="525" width="10" height="10" rx="2" fill="#dc2626"/>  <text x="555" y="535" class="legend">损失函数</text>
+  <text x="700" y="535" font-size="11" fill="#475569">关键公式:  G_t=σ(w_t)  |  G_v=σ(MLP)  |  y=G·y_D+(1-G)·y_T  |  L_SAL</text>
+</svg>

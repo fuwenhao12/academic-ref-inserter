@@ -1,0 +1,26 @@
+---
+description: Academic Reference Inserter — insert, format, and cross-reference citations in .docx
+globs: ["*.docx", "**/academic-ref-inserter/**"]
+---
+# Academic Ref Inserter
+
+Insert, format, and cross-reference academic citations in Word documents.
+
+## CLI Usage
+
+```
+python scripts/insert_refs.py analyze   --input paper.docx --json   # Analyze first
+python scripts/insert_refs.py fix       --input paper.docx --format gbt7714  # Full pipeline
+python scripts/insert_refs.py reformat  --input paper.docx --format ieee
+python scripts/insert_refs.py validate  --input paper.docx --format gbt7714 --json
+```
+
+## Formats
+
+- `gbt7714` — GB/T 7714-2015 (Chinese standard, sequential `[1]`)
+- `ieee` — IEEE (engineering/CS, sequential `[1]`)
+- `apa7` — APA 7th (social sciences, author-year alphabetical)
+
+## Always Use `--json` Flag
+
+All commands support `--json` for structured output that AI agents can parse reliably.

@@ -1,0 +1,78 @@
+======================================================================
+MathType 公式录入清单 — 《面向多尺度时序预测的时域门控混合模型》
+======================================================================
+
+使用方法:
+  1. 打开 MathType → Preferences → Cut and Copy Preferences
+  2. 勾选 "Use for new equations: LaTeX 2.09 and later"
+  3. 复制下方 LaTeX 代码 → 粘贴到 MathType → 自动渲染
+  4. 关闭 MathType 窗口 → 公式自动嵌入 Word 为 MathType OLE 对象
+  5. 公式编号 (n) 已在 Word 中预置，无需重新添加
+
+======================================================================
+一、核心独立公式（需要 MathType OLE 格式）
+======================================================================
+
+【式(1): 时间门控定义】
+当前位置: Section 3.2.1, P39附近
+LaTeX 源码 (可直接粘贴到 MathType):
+  \mathbf{g}_t = \sigma(\mathbf{w}_t) \in \mathbb{R}^{L}
+
+【式(2): 变量门控定义】
+当前位置: Section 3.2.2, P48附近
+LaTeX 源码 (可直接粘贴到 MathType):
+  \mathbf{g}_v = \sigma\bigl(\text{MLP}([\mathbf{y}_D \| \mathbf{y}_T \| \mathbf{g}_t^{\text{expand}}])\bigr) \in \mathbb{R}^{B \times L \times D}
+
+【式(3): 融合输出】
+当前位置: Section 3.2.3, P58附近
+LaTeX 源码 (可直接粘贴到 MathType):
+  \mathbf{y}_{\text{fused}} = \mathbf{g}_v \odot \mathbf{y}_D + (1 - \mathbf{g}_v) \odot \mathbf{y}_T
+
+【式(4): 尺度自适应损失函数】
+当前位置: Section 3.4, P60附近
+LaTeX 源码 (可直接粘贴到 MathType):
+  \mathcal{L}_{\text{SAL}} = \frac{1}{BLD} \sum_{b,l,d} \left[ g_v^{(b,l,d)} \cdot (y_D^{(b,l,d)} - \hat{y}^{(b,l,d)})^2 + (1 - g_v^{(b,l,d)}) \cdot (y_T^{(b,l,d)} - \hat{y}^{(b,l,d)})^2 \right]
+
+【式(5): MLP定义】
+当前位置: Section 3.2.2文中
+LaTeX 源码 (可直接粘贴到 MathType):
+  \text{MLP}(\mathbf{x}) = \mathbf{W}_2 \cdot \text{GELU}(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2
+
+【式(6): 退化加权平均损失】
+当前位置: Section 3.4文中 α=0.7
+LaTeX 源码 (可直接粘贴到 MathType):
+  \mathcal{L} = \alpha \cdot \mathcal{L}_{\text{MSE}}(y_D, \hat{y}) + (1-\alpha) \cdot \mathcal{L}_{\text{MSE}}(y_T, \hat{y})
+
+======================================================================
+二、文中的重要行内公式（可选择性用MathType录入）
+======================================================================
+
+  $\mathbf{y}_D \in \mathbb{R}^{B \times L \times D}$  ← DLinear输出
+  $\mathbf{y}_T \in \mathbb{R}^{B \times L \times D}$  ← TimeXer输出
+  $\mathbf{w}_t \in \mathbb{R}^{L}$  ← 可学习门控参数
+  $\mathbf{w}_t[:s_0] = 2.0 \Rightarrow \mathbf{g}_t \approx 0.88$  ← DLinear路径偏向
+  $\mathbf{w}_t[s_0:] = -2.0 \Rightarrow \mathbf{g}_t \approx 0.12$  ← TimeXer路径偏向
+  $\mathbf{g}_t^{\text{expand}}$  ← 时间门控广播
+  $\mathcal{O}(L \cdot D)$  ← DLinear复杂度
+  $\mathcal{O}(L^2 \cdot D)$  ← TimeXer复杂度
+  $\odot$  ← Hadamard逐元素积
+  $\mathcal{L}_{\text{MSE}}$  ← MSE损失
+  $\max(T_D, T_T)$  ← 并行后最大延迟
+  $r=0.90$  ← PM10-PM2.5相关系数
+  $r=0.63/0.54$  ← CO/NO2相关系数
+  $L_{\text{in}}=96$  ← 输入序列长度
+  $L_{\text{out}} \in \{96, 192, 336, 720\}$  ← 预测步长集合
+
+======================================================================
+三、MathType 字体设置（确保符合期刊要求）
+======================================================================
+
+  MathType → Style → Define:
+    Text:       Times New Roman
+    Function:   Times New Roman (斜体?)
+    Variable:   Times New Roman (斜体 ✅)
+    Vector:     Times New Roman (粗体 ✅)
+    Number:     Times New Roman
+    Greek:      Symbol
+  Size → Define:
+    Full:       10.5pt (五号)

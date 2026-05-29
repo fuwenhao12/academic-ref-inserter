@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+py_deps/
+
+# Temporary files
+*.tmp*
+*.tmp4
+*.bak
+*.swp
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Output directories
+paper_rewriting_output/
+
+# Word backup files
+~$*.docx
