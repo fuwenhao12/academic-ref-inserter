@@ -232,13 +232,18 @@ If you use this tool in your research, please cite:
 
 ### v1.0.1 (2026-05-28)
 
+**New features:**
+
+- **`check-refs` command** — Automated citation status checking with reference section boundary detection, per-reference occurrence display, `--report` export, and JSON output support.
+- **`auto-find` command** — CrossRef-based automatic reference searching with paper title extraction, interactive selection (range, all, none), DOI/title dedup, and auto-reorder after insertion.
+- **New utility functions** — `find_reference_boundary_robust()` (robust boundary detection), `find_citation_occurrences()` (citation location lookup), `extract_citation_content()` (citation number parsing), `dedup_adjacent_citations()` (collapse `[1][1][1]` → `[1]`).
+
 **Bug fixes:**
 
 - **Hyperlink styling** — Changed from blue + underline to **black superscript** (inherits document font color, no underline). Added `superscript` and `color` parameters to `make_hyperlink_element()`.
 - **Duplicate hyperlinks** — `replace_citation_with_hyperlink` now only processes direct `<w:r>` children of `<w:p>`, skipping runs inside existing `<w:hyperlink>` elements. Prevents nested hyperlinks that caused visual `[1][1]` duplicates.
 - **Cascading reorder bug** — `cmd_reorder` used single-pass sequential replacement, causing `[25]→[7]→[8]→...→[25]` cascading that corrupted 12 of 25 citation numbers. Fixed with **two-phase** replacement (temporary marker → final number).
 - **Reference section hyperlinks** — `cmd_hyperlink` now correctly skips the reference section, preventing false hyperlinks on bibliography entries.
-- **Adjacent citation dedup** — Added `dedup_adjacent_citations()` function to collapse `[1][1][1]` → `[1]` in body text before hyperlink creation.
 
 ### v1.0.0 (2026-05-29)
 
