@@ -190,18 +190,28 @@ def cmd_reorder(args):
             docx_utils.update_reference_text(para, new_text)
             bib_changes += 1
 
-    # Update in-text citations
+    # Update in-text citations using two-phase approach to avoid cascading
     text_changes = 0
     for para in doc.paragraphs:
-        text = para.text
         for old_num, new_num in old_to_new.items():
             if old_num == new_num:
                 continue
-            if f'[{old_num}]' in text:
-                for run in para.runs:
-                    if f'[{old_num}]' in run.text:
-                        run.text = run.text.replace(f'[{old_num}]', f'[{new_num}]')
-                        text_changes += 1
+            for run in para.runs:
+                old_str = f'[{old_num}]'
+                if old_str in run.text:
+                    # Phase 1: replace [old_num] with a safe temporary marker
+                    marker = f'__REORDER_{new_num}__'
+                    run.text = run.text.replace(old_str, marker)
+                    text_changes += 1
+
+    # Phase 2: replace all temporary markers with final format
+    for para in doc.paragraphs:
+        for new_num in set(old_to_new.values()):
+            marker = f'__REORDER_{new_num}__'
+            final = f'[{new_num}]'
+            for run in para.runs:
+                if marker in run.text:
+                    run.text = run.text.replace(marker, final)
 
     _save_doc(doc, args)
 
@@ -231,7 +241,11 @@ def cmd_hyperlink(args):
             bookmarks += 1
 
     hyperlinks = 0
-    for para in doc.paragraphs:
+    dedup_total = 0
+    for i, para in enumerate(doc.paragraphs):
+        if ref_title_idx is not None and i >= ref_title_idx:
+            break
+        dedup_total += docx_utils.dedup_adjacent_citations(para)
         refs = re.findall(r'\[(\d+)\]', para.text)
         if not refs:
             continue
@@ -248,7 +262,7 @@ def cmd_hyperlink(args):
         'hyperlinks_created': hyperlinks,
         'total_refs': len(ref_entries),
     }
-    result['message'] = f"Bookmarks: {bookmarks}, Hyperlinks: {hyperlinks}"
+    result['message'] = f"Bookmarks: {bookmarks}, Hyperlinks: {hyperlinks}, Dedup: {dedup_total}"
     _emit(result, args)
 
 

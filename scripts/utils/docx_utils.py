@@ -162,23 +162,32 @@ def add_bookmark_to_paragraph(para, bookmark_name: str) -> bool:
         return False
 
 
-def make_hyperlink_element(ref_text: str, bookmark_name: str) -> OxmlElement:
-    """Create a w:hyperlink XML element pointing to a bookmark."""
+def make_hyperlink_element(ref_text: str, bookmark_name: str,
+                           superscript: bool = True,
+                           color: str = None) -> OxmlElement:
+    """Create a w:hyperlink XML element pointing to a bookmark.
+
+    Args:
+        ref_text: The citation text to display (e.g. '[1]')
+        bookmark_name: Target bookmark name
+        superscript: Whether to apply superscript styling
+        color: Font color hex (e.g. '000000'), None = inherit from document
+    """
     hyperlink = OxmlElement('w:hyperlink')
     hyperlink.set(qn('w:anchor'), bookmark_name)
 
     r = OxmlElement('w:r')
     rPr = OxmlElement('w:rPr')
 
-    # Blue color
-    color = OxmlElement('w:color')
-    color.set(qn('w:val'), '0563C1')
-    rPr.append(color)
+    if superscript:
+        vAlign = OxmlElement('w:vertAlign')
+        vAlign.set(qn('w:val'), 'superscript')
+        rPr.append(vAlign)
 
-    # Underline
-    u = OxmlElement('w:u')
-    u.set(qn('w:val'), 'single')
-    rPr.append(u)
+    if color:
+        c = OxmlElement('w:color')
+        c.set(qn('w:val'), color)
+        rPr.append(c)
 
     r.append(rPr)
     t = OxmlElement('w:t')
@@ -189,65 +198,67 @@ def make_hyperlink_element(ref_text: str, bookmark_name: str) -> OxmlElement:
 
 
 def replace_citation_with_hyperlink(para, ref_num: int) -> bool:
-    """Replace [ref_num] citation in a paragraph with a hyperlink.
+    """Replace ALL occurrences of [ref_num] in a paragraph with hyperlinks.
 
-    Returns True if replacement succeeded.
+    Only processes runs that are direct children of <w:p> (skips hyperlink runs).
+    Returns True if at least one replacement succeeded.
     """
-    text = para.text
     ref_text = f'[{ref_num}]'
-    start = text.find(ref_text)
-    if start < 0:
-        return False
-
     bookmark_name = f"Ref_{ref_num}"
+    replaced_any = False
 
-    # Find the run containing this citation
-    char_count = 0
-    target_run = None
-    run_offset = -1
+    # Only iterate through direct <w:r> children of <w:p>, skipping hyperlink runs
+    p = para._p
+    while True:
+        direct_runs = [r for r in p if r.tag == qn('w:r')]
+        found_run = None
+        found_offset = -1
+        char_count = 0
 
-    for run in para.runs:
-        run_len = len(run.text)
-        if char_count <= start < char_count + run_len:
-            target_run = run
-            run_offset = start - char_count
-            break
-        char_count += run_len
+        for r in direct_runs:
+            run_text = r.text or ''
+            idx = run_text.find(ref_text)
+            if idx >= 0:
+                found_run = r
+                found_offset = idx
+                break
+            char_count += len(run_text)
 
-    if target_run is None:
-        return False
-
-    # Save format properties
-    rPr = None
-    for child in target_run._r:
-        if child.tag == qn('w:rPr'):
-            rPr = deepcopy(child)
+        if found_run is None:
             break
 
-    before = target_run.text[:run_offset]
-    after = target_run.text[run_offset + len(ref_text):]
+        before = found_run.text[:found_offset]
+        after = found_run.text[found_offset + len(ref_text):]
 
-    hyperlink_elem = make_hyperlink_element(ref_text, bookmark_name)
+        hyperlink_elem = make_hyperlink_element(ref_text, bookmark_name)
 
-    if before:
-        target_run.text = before
-        target_run._r.addnext(hyperlink_elem)
-    else:
-        target_run.text = ''
-        ref = target_run._r
-        parent = ref.getparent() if hasattr(ref, 'getparent') else ref
-        ref.addprevious(hyperlink_elem)
+        if before:
+            found_run.text = before
+            found_run.addnext(hyperlink_elem)
+        else:
+            found_run.text = ''
+            found_run.addprevious(hyperlink_elem)
 
-    if after:
-        new_run = OxmlElement('w:r')
-        if rPr:
-            new_run.append(deepcopy(rPr))
-        new_t = OxmlElement('w:t')
-        new_t.text = after
-        new_run.append(new_t)
-        hyperlink_elem.addnext(new_run)
+        if after:
+            new_run = OxmlElement('w:r')
+            rPr = None
+            for child in found_run:
+                if child.tag == qn('w:rPr'):
+                    rPr = deepcopy(child)
+                    break
+            if rPr:
+                new_run.append(deepcopy(rPr))
+            new_t = OxmlElement('w:t')
+            new_t.text = after
+            new_run.append(new_t)
+            if before:
+                hyperlink_elem.addnext(new_run)
+            else:
+                found_run.addnext(new_run)
 
-    return True
+        replaced_any = True
+
+    return replaced_any
 
 
 def insert_text_at_run(para, search_text: str, insert_text: str) -> bool:
@@ -276,3 +287,27 @@ def update_reference_text(para, new_text: str) -> bool:
     for r in para.runs[1:]:
         r.text = ''
     return True
+
+
+def dedup_adjacent_citations(para) -> int:
+    """Remove duplicate adjacent citations like [1][1][1] -> [1] in a paragraph.
+
+    Uses iterative regex replacement across the paragraph's full text,
+    then writes the cleaned text back into the first run.
+    Returns number of duplicate markers removed.
+    """
+    full_text = para.text
+    prev_text = None
+    while prev_text != full_text:
+        prev_text = full_text
+        full_text = re.sub(r'\[(\d+)\]\s*\[(\1)\]', r'[\1]', full_text)
+
+    removed_count = (len(para.text) - len(full_text)) // 2  # approx count
+    if full_text == para.text:
+        return 0
+
+    if para.runs:
+        para.runs[0].text = full_text
+        for r in para.runs[1:]:
+            r.text = ''
+    return removed_count

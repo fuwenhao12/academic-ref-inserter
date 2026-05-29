@@ -103,7 +103,7 @@ References:
 ...
 ```
 
-Each `[N]` in the text becomes a **blue clickable hyperlink** that jumps to the bibliography entry (Ctrl+Click in Word).
+Each `[N]` in the text becomes a **superscript black hyperlink** that jumps to the bibliography entry (Ctrl+Click in Word).
 
 ## Project Structure
 
@@ -225,3 +225,15 @@ If you use this tool in your research, please cite:
   url = {https://github.com/linfewngfeng/academic-ref-inserter}
 }
 ```
+
+## Changelog
+
+### v1.0.1 (2026-05-28)
+
+**Bug fixes:**
+
+- **Hyperlink styling** — Changed from blue + underline to **black superscript** (inherits document font color, no underline). Added `superscript` and `color` parameters to `make_hyperlink_element()`.
+- **Duplicate hyperlinks** — `replace_citation_with_hyperlink` now only processes direct `<w:r>` children of `<w:p>`, skipping runs inside existing `<w:hyperlink>` elements. Prevents nested hyperlinks that caused visual `[1][1]` duplicates.
+- **Cascading reorder bug** — `cmd_reorder` used single-pass sequential replacement, causing `[25]→[7]→[8]→...→[25]` cascading that corrupted 12 of 25 citation numbers. Fixed with **two-phase** replacement (temporary marker → final number).
+- **Reference section hyperlinks** — `cmd_hyperlink` now correctly skips the reference section, preventing false hyperlinks on bibliography entries.
+- **Adjacent citation dedup** — Added `dedup_adjacent_citations()` function to collapse `[1][1][1]` → `[1]` in body text before hyperlink creation.
