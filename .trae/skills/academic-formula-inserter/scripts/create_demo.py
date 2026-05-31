@@ -70,7 +70,7 @@ omath_para5 = etree.SubElement(p5._element, f"{{{M_NS}}}oMathPara")
 omath_para5.append(elem5)
 _add_number_to_paragraph(p5, "(5)")
 
-demo_path = Path(__file__).parent / "formula_demo_v2.docx"
+demo_path = Path(__file__).parent / "formula_demo_v3.docx"
 doc.save(str(demo_path))
 print(f"✅ 演示文档已创建: {demo_path}")
 print(f"   共插入 5 个 OMML 公式（3 种编号风格）")

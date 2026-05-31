@@ -61,7 +61,7 @@ def _build_text_omml(latex_str: str) -> str:
     return (
         f'<m:oMath xmlns:m="{m}">'
         f'<m:r><m:rPr><m:sty m:val="p"/></m:rPr>'
-        f'<m:t xml:space="preserve">{_escape_xml(latex_str)}</m:t></m:r>'
+        f'<m:t>{_escape_xml(latex_str)}</m:t></m:r>'
         f'</m:oMath>'
     )
 
@@ -79,13 +79,17 @@ def _m(tag: str, content: str = "") -> str:
 
 
 def _r(text: str, italic: bool = False) -> str:
-    """Build an OMML run (<m:r><m:t>text</m:t></m:r>)."""
-    rpr = ""
+    """Build an OMML run matching Word's native format."""
     if italic:
-        rpr = '<m:rPr><m:ital m:val="1"/></m:rPr>'
-    return (
-        f'<m:r>{rpr}<m:t xml:space="preserve">{_escape_xml(text)}</m:t></m:r>'
-    )
+        return (
+            f'<m:r><m:rPr><m:ital/></m:rPr>'
+            f'<m:t>{_escape_xml(text)}</m:t></m:r>'
+        )
+    else:
+        return (
+            f'<m:r><m:rPr/>'
+            f'<m:t>{_escape_xml(text)}</m:t></m:r>'
+        )
 
 
 def _build_omml_text(text: str) -> str:
