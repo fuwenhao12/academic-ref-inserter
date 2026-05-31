@@ -3,6 +3,7 @@ import tempfile
 import os
 import re
 from pathlib import Path
+from lxml import etree
 
 try:
     import latex2mathml.converter
@@ -119,7 +120,7 @@ def detect_equations_in_docx(doc):
             omml = para._element.findall(f'.//{{{M_NS}}}oMathPara')
         if omml:
             omml_xml = "".join(
-                [elem.xml for elem in omml]
+                [etree.tostring(elem, encoding='unicode') for elem in omml]
             )
             latex = omml_to_latex(omml_xml)
             is_display = para._element.findall(f'.//{{{M_NS}}}oMathPara') or \
