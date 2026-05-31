@@ -1,8 +1,10 @@
-import subprocess
-import tempfile
-import os
+"""LaTeX ↔ OMML (Office Math Markup Language) converter.
+
+Uses latex2mathml for LaTeX→MathML conversion, then transforms the MathML
+DOM tree into proper OMML XML that Word can render as native equations.
+"""
+
 import re
-from pathlib import Path
 from lxml import etree
 
 try:
@@ -12,95 +14,260 @@ except ImportError:
     HAS_LATEX2MATHML = False
 
 M_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
-W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+MML_NS = "http://www.w3.org/1998/Math/MathML"
+
+# Greek letter mapping
+GREEK = {
+    "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta",
+    "ε": "epsiv", "ζ": "zeta", "η": "eta", "θ": "theta",
+    "ι": "iota", "κ": "kappa", "λ": "lambda", "μ": "mu",
+    "ν": "nu", "ξ": "xi", "ο": "omicron", "π": "pi",
+    "ρ": "rho", "σ": "sigma", "τ": "tau", "υ": "upsi",
+    "φ": "phi", "χ": "chi", "ψ": "psi", "ω": "omega",
+    "Γ": "Gamma", "Δ": "Delta", "Θ": "Theta", "Λ": "Lambda",
+    "Ξ": "Xi", "Π": "Pi", "Σ": "Sigma", "Φ": "Phi",
+    "Ψ": "Psi", "Ω": "omega",
+}
 
 
 def latex_to_omml(latex_str: str, display: bool = False) -> str:
-    steps = []
-    steps.append(("input", latex_str))
-
     if not HAS_LATEX2MATHML:
-        mathml = _fallback_latex_to_mathml(latex_str)
-    else:
-        mathml = latex2mathml.converter.convert(latex_str)
-    steps.append(("mathml", mathml))
+        return _build_text_omml(latex_str)
 
-    omml = _mathml_to_omml(mathml)
-    steps.append(("omml", omml))
+    mathml = latex2mathml.converter.convert(latex_str)
+    mathml = mathml.strip()
+    if not mathml.startswith("<"):
+        mathml = f"<math>{mathml}</math>"
 
-    return omml
-
-
-def _fallback_latex_to_mathml(latex_str: str) -> str:
-    patterns = [
-        (r'\\frac\{([^}]*)\}\{([^}]*)\}', r'<m:f><m:num>\1</m:num><m:den>\2</m:den></m:f>'),
-        (r'\^\{([^}]*)\}', r'<m:sup>\1</m:sup>'),
-        (r'_\{([^}]*)\}', r'<m:sub>\1</m:sub>'),
-        (r'\^([a-zA-Z0-9])', r'<m:sup>\1</m:sup>'),
-        (r'_([a-zA-Z0-9])', r'<m:sub>\1</m:sub>'),
-        (r'\\sum', r'<m:sum/>'),
-        (r'\\int', r'<m:int/>'),
-        (r'\\pi', r'<m:pi/>'),
-        (r'\\alpha', r'<m:alpha/>'),
-        (r'\\beta', r'<m:beta/>'),
-        (r'\\sigma', r'<m:sigma/>'),
-        (r'\\mu', r'<m:mu/>'),
-        (r'\\theta', r'<m:theta/>'),
-        (r'\\lambda', r'<m:lambda/>'),
-        (r'\\infty', r'<m:infin/>'),
-    ]
-    result = latex_str
-    for pattern, replacement in patterns:
-        result = re.sub(pattern, replacement, result)
-    return f"<math>{result}</math>"
-
-
-def _mathml_to_omml(mathml: str) -> str:
     try:
-        with tempfile.TemporaryDirectory() as tmpdir:
-            mathml_file = Path(tmpdir) / "math.html"
-            mathml_file.write_text(
-                f"<html><body>{mathml}</body></html>", encoding="utf-8"
+        mathml_root = etree.fromstring(mathml.encode("utf-8"))
+    except etree.XMLSyntaxError:
+        return _build_text_omml(latex_str)
+
+    omml_inner = _convert_mathml_node(mathml_root)
+
+    if display:
+        return (
+            f'<m:oMathPara xmlns:m="{M_NS}">'
+            f'<m:oMath>{omml_inner}</m:oMath>'
+            f'</m:oMathPara>'
+        )
+    else:
+        return f'<m:oMath xmlns:m="{M_NS}">{omml_inner}</m:oMath>'
+
+
+def _build_text_omml(latex_str: str) -> str:
+    m = M_NS
+    return (
+        f'<m:oMath xmlns:m="{m}">'
+        f'<m:r><m:rPr><m:sty m:val="p"/></m:rPr>'
+        f'<m:t xml:space="preserve">{_escape_xml(latex_str)}</m:t></m:r>'
+        f'</m:oMath>'
+    )
+
+
+def _escape_xml(text: str) -> str:
+    text = text.replace("&", "&amp;")
+    text = text.replace("<", "&lt;")
+    text = text.replace(">", "&gt;")
+    text = text.replace('"', "&quot;")
+    return text
+
+
+def _m(tag: str, content: str = "") -> str:
+    return f"<{tag}>{content}</{tag.split()[0]}>" if content else f"<{tag}/>"
+
+
+def _r(text: str, italic: bool = False) -> str:
+    """Build an OMML run (<m:r><m:t>text</m:t></m:r>)."""
+    rpr = ""
+    if italic:
+        rpr = '<m:rPr><m:ital m:val="1"/></m:rPr>'
+    return (
+        f'<m:r>{rpr}<m:t xml:space="preserve">{_escape_xml(text)}</m:t></m:r>'
+    )
+
+
+def _build_omml_text(text: str) -> str:
+    """Build OMML for simple text, splitting operators from identifiers."""
+    parts = []
+    buf = ""
+    for ch in text:
+        if ch in "+-*/=()[]<>±×÷∑∏∫∂∇√∞∝∧∨∩∪∈∉⊂⊃⊆⊇":
+            if buf:
+                parts.append(_r(buf))
+                buf = ""
+            parts.append(_r(ch))
+        else:
+            buf += ch
+    if buf:
+        parts.append(_r(buf))
+    return "".join(parts)
+
+
+def _convert_mathml_node(node) -> str:
+    """Recursively convert a MathML node to OMML XML string."""
+    tag = node.tag
+    local = tag.split("}")[-1] if "}" in tag else tag
+
+    children_text = "".join(_convert_mathml_node(c) for c in node)
+
+    text = (node.text or "").strip()
+    tail = (node.tail or "").strip()
+
+    result = ""
+
+    if local == "math":
+        result = children_text + (_build_omml_text(text) if text else "")
+
+    elif local == "mrow":
+        result = children_text + (_build_omml_text(text) if text else "")
+
+    elif local == "mi":
+        content = text or ""
+        if content in GREEK:
+            result = _r(content)
+        elif len(content) <= 1:
+            result = _r(content, italic=True)
+        elif content in ("sin", "cos", "tan", "log", "ln", "exp",
+                          "sinh", "cosh", "tanh", "arcsin", "arccos", "arctan",
+                          "max", "min", "lim", "det", "arg", "deg"):
+            result = _r(content)
+        elif content in ("MLP", "MSE", "MAE", "LSTM", "GRU", "RNN",
+                          "CNN", "ReLU"):
+            result = _r(content)
+        else:
+            result = _r(content)
+
+    elif local == "mn":
+        result = _r(text)
+
+    elif local == "mo":
+        result = _r(text)
+
+    elif local == "mtext":
+        result = _r(text)
+
+    elif local == "msup":
+        parts = _split_children(node)
+        base = parts[0] if parts else ""
+        sup = parts[1] if len(parts) > 1 else ""
+        result = f'<m:sSup><m:e>{base}</m:e><m:lim>{sup}</m:lim></m:sSup>'
+
+    elif local == "msub":
+        parts = _split_children(node)
+        base = parts[0] if parts else ""
+        sub = parts[1] if len(parts) > 1 else ""
+        result = f'<m:sSub><m:e>{base}</m:e><m:lim>{sub}</m:lim></m:sSub>'
+
+    elif local == "msubsup":
+        parts = _split_children(node)
+        base = parts[0] if parts else ""
+        sub = parts[1] if len(parts) > 1 else ""
+        sup = parts[2] if len(parts) > 2 else ""
+        result = (
+            f'<m:sSubSup>'
+            f'<m:e>{base}</m:e>'
+            f'<m:sub>{sub}</m:sub>'
+            f'<m:sup>{sup}</m:sup>'
+            f'</m:sSubSup>'
+        )
+
+    elif local == "mfrac":
+        parts = _split_children(node)
+        num = parts[0] if parts else ""
+        den = parts[1] if len(parts) > 1 else ""
+        result = f'<m:f><m:num>{num}</m:num><m:den>{den}</m:den></m:f>'
+
+    elif local == "msqrt":
+        content = "".join(_convert_mathml_node(c) for c in node)
+        result = (
+            f'<m:rad>'
+            f'<m:radPr><m:degHide m:val="on"/></m:radPr>'
+            f'<m:e>{content}</m:e>'
+            f'</m:rad>'
+        )
+
+    elif local == "mroot":
+        parts = _split_children(node)
+        base = parts[0] if parts else ""
+        deg = parts[1] if len(parts) > 1 else ""
+        result = (
+            f'<m:rad>'
+            f'<m:radPr><m:degHide m:val="off"/></m:radPr>'
+            f'<m:deg>{deg}</m:deg>'
+            f'<m:e>{base}</m:e>'
+            f'</m:rad>'
+        )
+
+    elif local == "mover":
+        parts = _split_children(node)
+        base = parts[0] if parts else ""
+        over = parts[1] if len(parts) > 1 else ""
+        over_text = "".join(node[1].itertext()) if len(node) > 1 else ""
+        if over_text == "\u203e" or over_text == "_":
+            result = f'<m:bar><m:barPr><m:pos m:val="top"/></m:barPr><m:e>{base}</m:e></m:bar>'
+        elif over_text == "\u02c7":
+            result = f'<m:bar><m:barPr><m:pos m:val="top"/></m:barPr><m:e>{base}</m:e></m:bar>'
+        else:
+            result = base  # fallback, just show base
+
+    elif local == "munder":
+        parts = _split_children(node)
+        base = parts[0] if parts else ""
+        under = parts[1] if len(parts) > 1 else ""
+        under_text = "".join(node[1].itertext()) if len(node) > 1 else ""
+        if under_text in ("lim", "max", "min", "sup", "inf"):
+            result = (
+                f'<m:limLow><m:e>{base}</m:e><m:lim>{under}</m:lim></m:limLow>'
             )
-            output_file = Path(tmpdir) / "output.docx"
+        else:
+            result = f'<m:sSub><m:e>{base}</m:e><m:lim>{under}</m:lim></m:sSub>'
 
-            result = subprocess.run(
-                ["pandoc", str(mathml_file), "-o", str(output_file)],
-                capture_output=True, text=True, timeout=30
-            )
+    elif local == "munderover":
+        parts = _split_children(node)
+        base = parts[0] if parts else ""
+        under = parts[1] if len(parts) > 1 else ""
+        over = parts[2] if len(parts) > 2 else ""
+        result = (
+            f'<m:limLow>'
+            f'<m:limLow><m:e>{base}</m:e><m:lim>{under}</m:lim></m:limLow>'
+            f'<m:lim>{over}</m:lim>'
+            f'</m:limLow>'
+        )
 
-            if result.returncode == 0 and output_file.exists():
-                import zipfile
-                with zipfile.ZipFile(output_file, 'r') as zf:
-                    if 'word/document.xml' in zf.namelist():
-                        doc_xml = zf.read('word/document.xml').decode('utf-8')
-                        omml_match = re.search(
-                            r'<m:oMath[^>]*>.*?</m:oMath>', doc_xml, re.DOTALL
-                        )
-                        if omml_match:
-                            return omml_match.group(0)
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        pass
+    elif local == "mfenced":
+        open_delim = node.get("open", "(")
+        close_delim = node.get("close", ")")
+        parts = _split_children(node)
+        inner = "".join(parts)
+        result = (
+            f'<m:d><m:dPr><m:begChr m:val="{open_delim}"/>'
+            f'<m:endChr m:val="{close_delim}"/></m:dPr>'
+            f'<m:e>{inner}</m:e></m:d>'
+        )
 
-    return _build_omml_standalone(mathml)
+    elif local == "mstyle":
+        result = children_text + (_build_omml_text(text) if text else "")
+
+    elif local in ("merror", "mphantom", "mpadded", "menclose"):
+        result = children_text + (_build_omml_text(text) if text else "")
+
+    else:
+        result = children_text + (_build_omml_text(text) if text else "")
+
+    if tail:
+        result += _build_omml_text(tail)
+
+    return result
 
 
-def _build_omml_standalone(mathml: str) -> str:
-    m = "http://schemas.openxmlformats.org/officeDocument/2006/math"
-    w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-
-    omml_parts = []
-    content = re.sub(r'</?math[^>]*>', '', mathml)
-    content = re.sub(r'<m:', '<', content)
-    content = re.sub(r'</m:', '</', content)
-
-    omml_parts.append(f'<m:oMathPara xmlns:m="{m}" xmlns:w="{w}">')
-    omml_parts.append(f'<m:oMath>')
-    omml_parts.append(f'<m:r><m:t xml:space="preserve">{content}</m:t></m:r>')
-    omml_parts.append(f'</m:oMath>')
-    omml_parts.append(f'</m:oMathPara>')
-
-    return "".join(omml_parts)
+def _split_children(node):
+    """Convert each child element of a MathML node to OMML."""
+    results = []
+    for child in node:
+        results.append(_convert_mathml_node(child))
+    return results
 
 
 def omml_to_latex(omml_xml: str) -> str:
@@ -123,12 +290,11 @@ def detect_equations_in_docx(doc):
                 [etree.tostring(elem, encoding='unicode') for elem in omml]
             )
             latex = omml_to_latex(omml_xml)
-            is_display = para._element.findall(f'.//{{{M_NS}}}oMathPara') or \
-                         len(omml) > 1
+            is_display = bool(para._element.findall(f'.//{{{M_NS}}}oMathPara'))
             equations.append({
                 "index": len(equations) + 1,
                 "paragraph_index": i,
-                "is_display": bool(is_display),
+                "is_display": is_display,
                 "latex": latex,
                 "omml_xml": omml_xml,
                 "paragraph": para,
