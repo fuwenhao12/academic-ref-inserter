@@ -25,6 +25,10 @@ M_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
 
 
 def cmd_insert_formula(args):
+    if getattr(args, 'mathtype', False):
+        _insert_mathtype_formula(args)
+        return
+
     doc = Document(args.docx_path)
 
     omml = latex_to_omml(args.latex, display=args.display)
@@ -69,6 +73,54 @@ def cmd_insert_formula(args):
     print(f"Formula inserted: {args.latex}")
     if args.display:
         print("  Type: display equation")
+
+
+def _insert_mathtype_formula(args):
+    """Insert formula using MathType-compatible format via ZIP-level injection."""
+    import zipfile, io, re, tempfile
+    from lxml import etree
+    from mathtype_integration import (
+        add_mt_display_equation_style,
+        build_mt_omml_equation,
+        inject_mt_paragraphs_via_zip,
+    )
+
+    temp_dir = Path(args.docx_path).parent
+    temp_path = str(temp_dir / f"_mt_temp_{os.urandom(4).hex()}.docx")
+
+    shutil.copy2(args.docx_path, temp_path)
+
+    add_mt_display_equation_style(temp_path)
+
+    eq_num = args.number or 1
+    omml = latex_to_omml(args.latex, display=False)
+    para_xml = build_mt_omml_equation(omml, eq_num)
+    inject_mt_paragraphs_via_zip(temp_path, [para_xml])
+
+    # Clean up python-docx corrupted elements if any exist
+    with zipfile.ZipFile(temp_path, 'r') as zf:
+        doc_xml = zf.read('word/document.xml')
+
+    cleaned = re.sub(r'<m:sSupPr>.*?</m:sSupPr>', '', doc_xml.decode('utf-8'), flags=re.DOTALL)
+    cleaned = re.sub(r'<m:sSubPr>.*?</m:sSubPr>', '', cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r'<m:ctrlPr>.*?</m:ctrlPr>', '', cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r'<m:sup/>', '', cleaned)
+    cleaned = re.sub(r'<m:sub/>', '', cleaned)
+
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(temp_path, 'r') as zf:
+        with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as out:
+            for item in zf.infolist():
+                if item.filename == 'word/document.xml':
+                    out.writestr(item, cleaned.encode('utf-8'))
+                else:
+                    out.writestr(item, zf.read(item.filename))
+
+    shutil.move(temp_path, args.docx_path)
+    print(f"MathType formula inserted: {args.latex}")
+    print(f"  Type: {'display' if args.display else 'inline'} equation")
+    print(f"  Number: {eq_num} (SEQ MTEqn)")
+    print(f"  Style: MTDisplayEquation (double-click editable in MathType)")
 
 
 def cmd_batch_convert(args):
@@ -209,6 +261,8 @@ def main():
     p_insert.add_argument("--label", help="Equation label for cross-reference")
     p_insert.add_argument("--interactive", action="store_true",
                           help="Interactive mode: prompt to choose numbering style")
+    p_insert.add_argument("--mathtype", action="store_true",
+                          help="MathType-compatible mode: MTDisplayEquation style + SEQ MTEqn")
 
     p_batch = sub.add_parser("batch-convert", help="Convert all $...$ LaTeX in document to OMML")
     p_batch.add_argument("docx_path", help="Path to .docx file")

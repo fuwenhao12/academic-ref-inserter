@@ -1,22 +1,36 @@
-# Build
-*.pyc
+# Python
 __pycache__/
+*.pyc
+*.pyo
 *.egg-info/
+*.egg
+dist/
+build/
+py_deps/
 
-# OS
-.DS_Store
-Thumbs.db
+# Temporary files
+*.tmp*
+*.tmp4
+*.bak
+*.swp
 
 # IDE
-.vscode/
 .idea/
+.vscode/
+*.suo
+*.user
 
-# Test outputs
-*_backup_*.docx
-*_backup_refs.docx
-*.analysis.json
+# OS
+Thumbs.db
+.DS_Store
 
-# Environment
-.env
-venv/
-.venv/
+# Output directories
+paper_rewriting_output/
+
+# Word backup files
+~$*.docx
+
+# Generated formula demo files
+formula_demo_*.docx
+com_test.docx
+mt_test.docx

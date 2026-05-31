@@ -228,6 +228,25 @@ If you use this tool in your research, please cite:
 
 ## Changelog
 
+### v1.1.0 (2026-05-31)
+
+**New features — Academic Formula Inserter (实验性):**
+
+- **`build_docx_raw.py`** — 全新 OMML 公式文档生成器。在 ZIP 层直接构建 .docx，完全绕过 python-docx 的 OMML 损坏问题。支持 LaTeX → OMML 转换、MTDisplayEquation 段落样式、SEQ MTEqn 公式编号。
+- **`convert_omml_to_mathtype.py`** — COM 自动化转换脚本。通过 Word COM API（SendKeys Alt+\、MTCommand、剪贴板）将 OMML 公式批量转为 MathType OLE 对象。支持 `--check` 检测 MathType 安装状态。
+- **`convert_omml_to_mathtype.vbs`** — VBScript 版本的 COM 转换器。无需 pywin32，在桌面双击即可运行。自动逐个选中 OMML 公式并发送 MathType 转换快捷键。
+- **`build_ole_docx.py`** — MathType OLE 容器构建器（实验性）。手动构造 CFB/OLE2 复合文档 + MTEF 二进制数据，生成 Equation.DSMT4 OLE 对象。**注意**：由于 "Equation Native" 流格式为 MathType 专有格式（含字体表、WMF 预览等），生成的公式虽被 Word 识别但不可见。推荐使用 OMML + COM 转换方案。
+- **`convert_to_mathtype.py`** — MathType 转换独立工具。支持检测 MathType 注册表状态、批量 OMML→MathType 转换，含多种备选策略。
+- **`mathtype_integration.py`** — MathType 兼容层。提供 MTDisplayEquation 段落样式注入、SEO MTEqn 编号字段、MACROBUTTON MTPlaceRef 占位符、OMML 公式段落构建。
+
+**Enhancements:**
+
+- **`formula_inserter.py`** — 新增 `--mathtype` 参数：插入公式时使用 MathType 兼容模式（MTDisplayEquation 样式 + SEQ MTEqn 编号 + ZIP 级注入）。
+
+**Bug fixes:**
+
+- **OMML 结构损坏** — 彻底规避 python-docx 对 OMML 元素的破坏：新代码在 ZIP 层直接修改 `word/document.xml`，使用 `re.sub` 清除 python-docx 插入的 `<m:sSupPr>`、`<m:sSubPr>`、`<m:ctrlPr>` 等垃圾标签。
+
 ### v1.0.1 (2026-05-28)
 
 **New features:**
