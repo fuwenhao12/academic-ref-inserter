@@ -44,7 +44,9 @@ python insert_formula.py insert-formula <docx_path> --latex "<formula>" [--displ
 | `--display` | Display equation (centered, default: inline) |
 | `--style` | Numbering style: `chinese`, `parentheses`, `brackets`, `section`, `none` |
 | `--number` | Specific number for the equation |
+| `--position` | Paragraph index to insert at |
 | `--label` | Equation label for cross-reference |
+| `--interactive` | Interactive mode: prompt to choose numbering style from a menu |
 
 ### `batch-convert` — Batch convert all LaTeX in document
 
@@ -61,7 +63,26 @@ Detects all equations in the document and numbers them sequentially according to
 
 **Usage:**
 ```bash
-python insert_formula.py number-formulas <docx_path> --style <style>
+# 指定编号风格
+python insert_formula.py number-formulas <docx_path> --style parentheses
+
+# 交互模式: 程序提示用户选择编号风格
+python insert_formula.py number-formulas <docx_path> --interactive
+```
+
+**支持编号风格 (交互提示):**
+```
+  编号   名称          示例              说明
+  ----------------------------------------------
+    1    中文核心      式(1)             适用于中文核心期刊
+    2    圆括号        (1)               适用于 IEEE、Elsevier 等国际期刊
+    3    方括号        [1]               适用于部分物理/数学期刊
+    4    章节编号      (1.1)             适用于学位论文/多章节文档
+    5    LaTeX标签     \tag{1}           LaTeX 原生格式
+    6    中文+括号     式(1)             中文括号组合
+    7    无编号        无                不添加编号
+  ----------------------------------------------
+  输入编号 (1-7)，或按 Enter 使用默认 [2-圆括号]
 ```
 
 ### `validate-format` — Validate formula format for journal

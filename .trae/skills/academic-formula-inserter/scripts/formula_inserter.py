@@ -46,28 +46,29 @@ def cmd_insert_formula(args):
     else:
         para._element.append(omml_element)
 
-    if args.number is not None or args.style:
-        from formula_numbering import _add_number_to_paragraph
+    if args.interactive:
+        from formula_numbering import interactive_numbering_prompt, _style_id_to_format, _add_number_to_paragraph
+        style = interactive_numbering_prompt("请选择编号格式")
+        if style != "none":
+            num_text = _style_id_to_format(style).format(num=args.number or 1)
+            _add_number_to_paragraph(para, num_text)
+            print(f"  Number: {num_text}")
+    elif args.number is not None or args.style:
+        from formula_numbering import _add_number_to_paragraph, _style_id_to_format
         style = args.style or "parentheses"
         profile = get_profile(style)
         if profile:
             num_text = profile["numbering_format"].format(num=args.number or 1)
         else:
-            fmt_formats = {
-                "chinese": "式({num})",
-                "parentheses": "({num})",
-                "brackets": "[{num}]",
-            }
-            fmt = fmt_formats.get(style, "({num})")
+            fmt = _style_id_to_format(style)
             num_text = fmt.format(num=args.number or 1)
         _add_number_to_paragraph(para, num_text)
+        print(f"  Number: {num_text}")
 
     doc.save(args.docx_path)
     print(f"Formula inserted: {args.latex}")
     if args.display:
         print("  Type: display equation")
-    if args.number:
-        print(f"  Number: {num_text}")
 
 
 def cmd_batch_convert(args):
@@ -120,12 +121,13 @@ def cmd_batch_convert(args):
 def cmd_number_formulas(args):
     doc = Document(args.docx_path)
 
-    profile = get_profile(args.style) if args.style else None
+    profile = get_profile(args.style) if args.style and not args.interactive else None
     style = args.style or "parentheses"
 
-    count = number_equations_in_docx(doc, style=style, profile=profile)
+    count = number_equations_in_docx(doc, style=style, profile=profile, interactive=args.interactive)
     doc.save(args.docx_path)
-    print(f"Numbered {count} equations with style '{style}'")
+    if not args.interactive:
+        print(f"Numbered {count} equations with style '{style}'")
 
 
 def cmd_validate_format(args):
@@ -205,6 +207,8 @@ def main():
     p_insert.add_argument("--number", type=int, help="Equation number")
     p_insert.add_argument("--position", type=int, help="Paragraph index to insert at")
     p_insert.add_argument("--label", help="Equation label for cross-reference")
+    p_insert.add_argument("--interactive", action="store_true",
+                          help="Interactive mode: prompt to choose numbering style")
 
     p_batch = sub.add_parser("batch-convert", help="Convert all $...$ LaTeX in document to OMML")
     p_batch.add_argument("docx_path", help="Path to .docx file")
@@ -216,6 +220,8 @@ def main():
     p_number.add_argument("docx_path", help="Path to .docx file")
     p_number.add_argument("--style", default="parentheses",
                           help="Numbering style: chinese, parentheses, brackets, section")
+    p_number.add_argument("--interactive", action="store_true",
+                          help="Interactive mode: prompt to choose numbering style")
 
     p_validate = sub.add_parser("validate-format", help="Validate formula format for journal")
     p_validate.add_argument("docx_path", help="Path to .docx file")
